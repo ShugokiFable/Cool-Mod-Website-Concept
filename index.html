@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Custom Xbox 360 JTAG and RGH console builds, upgrades, styling, and repair services.">
+  <meta name="theme-color" content="#090515">
+  <title>JTAG Fury — Custom Xbox Builds</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+
+    :root {
+      --bg: #090515;
+      --surface: rgba(21, 13, 43, .78);
+      --surface-2: #17102d;
+      --text: #fff;
+      --muted: #bdb3d5;
+      --pink: #ff2bb8;
+      --purple: #8a3ffc;
+      --blue: #18a8ff;
+      --cyan: #20f4e6;
+      --lime: #a9ff38;
+      --orange: #ff8534;
+      --border: rgba(255,255,255,.13);
+      --shadow: 0 24px 70px rgba(0,0,0,.38);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      overflow-x: hidden;
+      color: var(--text);
+      font-family: "Outfit", sans-serif;
+      background:
+        radial-gradient(circle at 12% 10%, rgba(255,43,184,.18), transparent 28rem),
+        radial-gradient(circle at 90% 22%, rgba(32,244,230,.15), transparent 31rem),
+        radial-gradient(circle at 48% 86%, rgba(138,63,252,.19), transparent 35rem),
+        var(--bg);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      opacity: .12;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255,255,255,.13) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,.13) 1px, transparent 1px);
+      background-size: 50px 50px;
+      mask-image: linear-gradient(to bottom, black, transparent 76%);
+    }
+
+    a { color: inherit; text-decoration: none; }
+    button, input, select, textarea { font: inherit; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+    img { max-width: 100%; }
+    .container { width: min(1180px, calc(100% - 40px)); margin-inline: auto; }
+
+    .announcement {
+      padding: 9px 20px;
+      color: #100722;
+      text-align: center;
+      font-size: .78rem;
+      font-weight: 900;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      background: linear-gradient(90deg, var(--cyan), var(--lime), #ffe737, var(--pink));
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      border-bottom: 1px solid var(--border);
+      background: rgba(9,5,21,.76);
+      backdrop-filter: blur(20px);
+    }
+
+    nav {
+      height: 78px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: -.03em;
+    }
+
+    .brand-mark {
+      width: 42px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      position: relative;
+      border-radius: 14px;
+      color: #120722;
+      font: 900 1.25rem/1 "Space Mono";
+      background: linear-gradient(135deg, var(--lime), var(--cyan) 48%, var(--purple));
+      box-shadow: 0 0 28px rgba(32,244,230,.35);
+      transform: rotate(-5deg);
+    }
+
+    .brand span span { color: var(--cyan); }
+    .nav-links { display: flex; align-items: center; gap: 30px; }
+    .nav-links a {
+      color: var(--muted);
+      font-weight: 700;
+      font-size: .94rem;
+      transition: .2s ease;
+    }
+    .nav-links a:hover { color: white; }
+
+    .button {
+      border: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      min-height: 48px;
+      padding: 0 20px;
+      border-radius: 14px;
+      color: #100720;
+      font-weight: 900;
+      letter-spacing: .01em;
+      background: linear-gradient(135deg, var(--lime), var(--cyan));
+      box-shadow: 0 10px 30px rgba(32,244,230,.22);
+      transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+    }
+    .button:hover { transform: translateY(-3px); box-shadow: 0 16px 36px rgba(32,244,230,.3); filter: saturate(1.18); }
+    .button.secondary {
+      color: white;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      box-shadow: none;
+    }
+    .button.pink {
+      color: white;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      box-shadow: 0 12px 32px rgba(255,43,184,.24);
+    }
+
+    .menu-btn {
+      display: none;
+      width: 44px;
+      height: 44px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      background: rgba(255,255,255,.06);
+      color: white;
+      cursor: pointer;
+      font-size: 1.25rem;
+    }
+
+    .hero {
+      min-height: 700px;
+      padding: 92px 0 75px;
+      display: grid;
+      grid-template-columns: 1.02fr .98fr;
+      align-items: center;
+      gap: 54px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 8px 13px;
+      border: 1px solid rgba(169,255,56,.35);
+      border-radius: 999px;
+      color: var(--lime);
+      font: 700 .75rem/1 "Space Mono";
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      background: rgba(169,255,56,.07);
+    }
+    .pulse {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--lime);
+      box-shadow: 0 0 0 0 rgba(169,255,56,.65);
+      animation: pulse 1.8s infinite;
+    }
+    @keyframes pulse { 70% { box-shadow: 0 0 0 9px rgba(169,255,56,0); } }
+
+    h1 {
+      margin: 24px 0 20px;
+      max-width: 700px;
+      font-size: clamp(3.5rem, 7vw, 6.6rem);
+      line-height: .88;
+      letter-spacing: -.075em;
+      font-weight: 900;
+    }
+
+    .gradient-text {
+      display: block;
+      padding-bottom: .1em;
+      color: transparent;
+      background: linear-gradient(90deg, var(--pink), #ff8748 30%, #ffe33b 55%, var(--cyan) 82%);
+      -webkit-background-clip: text;
+      background-clip: text;
+    }
+
+    .hero-copy > p {
+      max-width: 620px;
+      margin: 0 0 31px;
+      color: var(--muted);
+      font-size: 1.16rem;
+      line-height: 1.7;
+    }
+    .hero-actions { display: flex; gap: 13px; flex-wrap: wrap; }
+    .trust-row {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-top: 37px;
+      color: #d9d3e8;
+      font-size: .86rem;
+      font-weight: 700;
+    }
+    .trust-row span::before { content: "✓"; margin-right: 7px; color: var(--cyan); }
+
+    .console-stage {
+      min-height: 520px;
+      position: relative;
+      display: grid;
+      place-items: center;
+      perspective: 1000px;
+    }
+    .orb {
+      width: min(490px, 90%);
+      aspect-ratio: 1;
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.13), rgba(138,63,252,.26) 38%, rgba(255,43,184,.11) 58%, transparent 70%);
+      filter: blur(2px);
+      animation: breathe 5s ease-in-out infinite;
+    }
+    @keyframes breathe { 50% { transform: scale(1.07); filter: hue-rotate(24deg) blur(2px); } }
+
+    .console {
+      width: 230px;
+      height: 420px;
+      position: relative;
+      z-index: 2;
+      border: 2px solid rgba(255,255,255,.23);
+      border-radius: 42px 29px 35px 35px;
+      background:
+        linear-gradient(90deg, transparent 48.7%, rgba(255,255,255,.1) 49%, rgba(255,255,255,.1) 50%, transparent 50.3%),
+        linear-gradient(150deg, #302648, #130d26 58%, #241636);
+      box-shadow:
+        -24px 30px 60px rgba(0,0,0,.55),
+        0 0 65px rgba(255,43,184,.25),
+        inset 0 0 35px rgba(255,255,255,.05);
+      transform: rotateY(-13deg) rotateZ(4deg);
+      animation: float 4s ease-in-out infinite;
+    }
+    @keyframes float { 50% { transform: rotateY(-9deg) rotateZ(2deg) translateY(-15px); } }
+
+    .console::before {
+      content: "";
+      position: absolute;
+      inset: 16px 25px auto;
+      height: 7px;
+      border-radius: 99px;
+      background: repeating-linear-gradient(90deg, #080512 0 3px, transparent 3px 7px);
+      opacity: .8;
+    }
+    .console::after {
+      content: "";
+      position: absolute;
+      inset: auto 28px 19px;
+      height: 9px;
+      border-radius: 99px;
+      background: repeating-linear-gradient(90deg, #080512 0 3px, transparent 3px 7px);
+    }
+    .disc {
+      width: 75%;
+      height: 22px;
+      position: absolute;
+      top: 85px;
+      left: 12.5%;
+      border: 1px solid rgba(255,255,255,.16);
+      border-radius: 5px;
+      background: #090612;
+      box-shadow: inset 0 3px 5px #000;
+    }
+    .led-ring {
+      width: 72px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      position: absolute;
+      left: 50%;
+      top: 52%;
+      border-radius: 50%;
+      transform: translate(-50%,-50%);
+      border: 8px solid var(--lime);
+      background: #17102b;
+      box-shadow: 0 0 12px var(--lime), 0 0 38px rgba(169,255,56,.65), inset 0 0 15px rgba(169,255,56,.4);
+    }
+    .led-ring::after {
+      content: "X";
+      color: white;
+      font-size: 1.3rem;
+      font-weight: 900;
+    }
+    .rgb-strip {
+      position: absolute;
+      inset: 0 auto 0 14px;
+      width: 5px;
+      border-radius: 10px;
+      background: linear-gradient(var(--pink), var(--orange), var(--lime), var(--cyan), var(--purple), var(--pink));
+      box-shadow: 0 0 18px var(--pink);
+      animation: colorCycle 3s linear infinite;
+    }
+    @keyframes colorCycle { to { filter: hue-rotate(360deg); } }
+
+    .chip {
+      position: absolute;
+      z-index: 4;
+      padding: 11px 14px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(17,10,35,.82);
+      backdrop-filter: blur(12px);
+      box-shadow: var(--shadow);
+      font: 700 .71rem/1 "Space Mono";
+    }
+    .chip b { display: block; margin-bottom: 5px; font-family: "Outfit"; font-size: 1rem; color: white; }
+    .chip.one { left: 3%; top: 21%; color: var(--pink); transform: rotate(-5deg); }
+    .chip.two { right: 0; top: 34%; color: var(--cyan); transform: rotate(5deg); }
+    .chip.three { left: 5%; bottom: 13%; color: var(--lime); transform: rotate(3deg); }
+
+    .marquee {
+      overflow: hidden;
+      padding: 15px 0;
+      border-block: 1px solid rgba(255,255,255,.13);
+      color: #100720;
+      background: linear-gradient(90deg, var(--pink), #ffbe36, var(--lime), var(--cyan));
+      transform: rotate(-1deg) scale(1.02);
+    }
+    .marquee-track {
+      width: max-content;
+      display: flex;
+      gap: 35px;
+      font: 900 1rem "Space Mono";
+      letter-spacing: .05em;
+      animation: scroll 24s linear infinite;
+    }
+    .marquee-track span::after { content: "✦"; margin-left: 35px; }
+    @keyframes scroll { to { transform: translateX(-50%); } }
+
+    section { padding: 105px 0; }
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 30px;
+      margin-bottom: 42px;
+    }
+    .section-head h2 {
+      margin: 13px 0 0;
+      max-width: 700px;
+      font-size: clamp(2.4rem, 5vw, 4.5rem);
+      line-height: .97;
+      letter-spacing: -.055em;
+    }
+    .section-head p { max-width: 430px; margin: 0; color: var(--muted); line-height: 1.7; }
+
+    .build-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .build-card {
+      position: relative;
+      overflow: hidden;
+      min-height: 485px;
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.045);
+      box-shadow: var(--shadow);
+      transition: transform .25s ease, border-color .25s ease;
+    }
+    .build-card:hover { transform: translateY(-8px); border-color: rgba(255,255,255,.3); }
+    .build-card.featured { background: linear-gradient(155deg, rgba(255,43,184,.17), rgba(138,63,252,.13), rgba(255,255,255,.045)); }
+    .popular {
+      position: absolute;
+      top: 19px;
+      right: -35px;
+      width: 145px;
+      padding: 7px 0;
+      transform: rotate(40deg);
+      text-align: center;
+      color: #160823;
+      background: var(--lime);
+      font: 900 .68rem "Space Mono";
+    }
+    .icon {
+      width: 55px;
+      height: 55px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 24px;
+      border-radius: 17px;
+      font-size: 1.55rem;
+      background: linear-gradient(135deg, var(--pink), var(--purple));
+      box-shadow: 0 9px 26px rgba(255,43,184,.25);
+    }
+    .build-card:nth-child(2) .icon { background: linear-gradient(135deg, var(--cyan), var(--blue)); }
+    .build-card:nth-child(3) .icon { background: linear-gradient(135deg, var(--orange), #ffd533); }
+    .build-card h3 { margin: 0 0 8px; font-size: 1.55rem; }
+    .price { margin-bottom: 22px; font-size: 2.35rem; font-weight: 900; letter-spacing: -.05em; }
+    .price small { color: var(--muted); font-size: .85rem; font-weight: 500; letter-spacing: 0; }
+    .features { margin: 0 0 26px; padding: 0; list-style: none; color: var(--muted); }
+    .features li { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.07); }
+    .features li::before { content: "✦"; margin-right: 9px; color: var(--cyan); }
+    .build-card .button { margin-top: auto; width: 100%; }
+
+    .customizer {
+      display: grid;
+      grid-template-columns: .85fr 1.15fr;
+      gap: 28px;
+      padding: 36px;
+      border: 1px solid var(--border);
+      border-radius: 32px;
+      background:
+        radial-gradient(circle at 100% 0, rgba(32,244,230,.15), transparent 35%),
+        radial-gradient(circle at 0 100%, rgba(255,43,184,.16), transparent 38%),
+        rgba(255,255,255,.045);
+      box-shadow: var(--shadow);
+    }
+    .customizer h2 { margin: 14px 0 13px; font-size: clamp(2.3rem, 4vw, 4rem); line-height: 1; letter-spacing: -.055em; }
+    .customizer p { color: var(--muted); line-height: 1.65; }
+    .builder-form { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+    .field { padding: 16px; border: 1px solid var(--border); border-radius: 16px; background: rgba(7,4,17,.5); }
+    .field label { display: block; margin-bottom: 9px; color: var(--muted); font-size: .75rem; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; }
+    .field select {
+      width: 100%;
+      padding: 0;
+      border: 0;
+      outline: none;
+      color: white;
+      background: transparent;
+      font-weight: 700;
+    }
+    .field option { color: white; background: #17102d; }
+    .total {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 20px;
+      border: 1px solid rgba(169,255,56,.24);
+      border-radius: 18px;
+      background: rgba(169,255,56,.07);
+    }
+    .total span { color: var(--muted); }
+    .total strong { display: block; color: var(--lime); font-size: 2rem; letter-spacing: -.04em; }
+
+    .process-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
+    .step {
+      padding: 26px;
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      background: rgba(255,255,255,.04);
+    }
+    .step-num {
+      margin-bottom: 35px;
+      color: transparent;
+      -webkit-text-stroke: 1px var(--pink);
+      font: 900 3rem/1 "Space Mono";
+    }
+    .step:nth-child(2) .step-num { -webkit-text-stroke-color: var(--orange); }
+    .step:nth-child(3) .step-num { -webkit-text-stroke-color: var(--lime); }
+    .step:nth-child(4) .step-num { -webkit-text-stroke-color: var(--cyan); }
+    .step h3 { margin: 0 0 8px; }
+    .step p { margin: 0; color: var(--muted); line-height: 1.6; font-size: .92rem; }
+
+    .cta {
+      margin-bottom: 90px;
+      padding: 66px 30px;
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+      border-radius: 32px;
+      color: #100720;
+      background: linear-gradient(120deg, var(--pink), #ff7b36 35%, var(--lime) 72%, var(--cyan));
+      box-shadow: 0 25px 70px rgba(255,43,184,.2);
+    }
+    .cta::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      opacity: .16;
+      background: repeating-linear-gradient(-45deg, transparent 0 14px, #fff 14px 16px);
+    }
+    .cta > * { position: relative; }
+    .cta h2 { margin: 0 0 12px; font-size: clamp(2.5rem, 5vw, 5rem); line-height: .95; letter-spacing: -.06em; }
+    .cta p { margin: 0 auto 26px; max-width: 570px; font-weight: 700; }
+    .cta .button { color: white; background: #100720; box-shadow: 0 12px 30px rgba(16,7,32,.25); }
+
+    footer { padding: 36px 0; border-top: 1px solid var(--border); color: var(--muted); }
+    .footer-row { display: flex; align-items: center; justify-content: space-between; gap: 25px; }
+    .footer-links { display: flex; gap: 24px; font-size: .88rem; }
+    .disclaimer { max-width: 1180px; margin: 25px auto 0; padding-top: 22px; border-top: 1px solid rgba(255,255,255,.07); font-size: .74rem; line-height: 1.6; }
+
+    .reveal { opacity: 0; transform: translateY(24px); transition: opacity .7s ease, transform .7s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    @media (max-width: 900px) {
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 78px;
+        left: 20px;
+        right: 20px;
+        padding: 22px;
+        flex-direction: column;
+        align-items: stretch;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        background: #120b25;
+        box-shadow: var(--shadow);
+      }
+      .nav-links.open { display: flex; }
+      .menu-btn { display: block; }
+      nav > .button { display: none; }
+      .hero { grid-template-columns: 1fr; padding-top: 65px; text-align: center; }
+      .hero-copy > p { margin-inline: auto; }
+      .hero-actions, .trust-row { justify-content: center; }
+      .console-stage { min-height: 485px; }
+      .build-grid { grid-template-columns: 1fr 1fr; }
+      .build-card:last-child { grid-column: 1 / -1; }
+      .customizer { grid-template-columns: 1fr; }
+      .process-grid { grid-template-columns: 1fr 1fr; }
+      .section-head { align-items: start; flex-direction: column; }
+    }
+
+    @media (max-width: 600px) {
+      .container { width: min(100% - 26px, 1180px); }
+      .announcement { font-size: .65rem; }
+      nav { height: 68px; }
+      .nav-links { top: 68px; }
+      h1 { font-size: clamp(3.25rem, 17vw, 5rem); }
+      .hero { gap: 20px; min-height: auto; padding-bottom: 45px; }
+      .hero-copy > p { font-size: 1rem; }
+      .hero-actions .button { width: 100%; }
+      .trust-row { gap: 11px 15px; }
+      .console-stage { min-height: 420px; transform: scale(.88); margin: -25px -30px; }
+      section { padding: 76px 0; }
+      .build-grid, .process-grid, .builder-form { grid-template-columns: 1fr; }
+      .build-card:last-child { grid-column: auto; }
+      .build-card { min-height: 440px; }
+      .customizer { padding: 24px 17px; }
+      .total { grid-column: auto; flex-direction: column; align-items: stretch; }
+      .total .button { width: 100%; }
+      .cta { padding: 52px 20px; margin-bottom: 55px; }
+      .footer-row, .footer-links { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="announcement">Free tracked shipping on custom builds this week ✦ Limited build slots available</div>
+
+  <header>
+    <nav class="container" aria-label="Main navigation">
+      <a class="brand" href="#top" aria-label="JTAG Fury home">
+        <span class="brand-mark">X</span>
+        <span>JTAG<span>FURY</span></span>
+      </a>
+      <div class="nav-links" id="navLinks">
+        <a href="#builds">Builds</a>
+        <a href="#customizer">Customizer</a>
+        <a href="#process">How it works</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <a class="button" href="#customizer">Start your build →</a>
+      <button class="menu-btn" id="menuBtn" aria-label="Toggle navigation" aria-expanded="false">☰</button>
+    </nav>
+  </header>
+
+  <main id="top">
+    <div class="hero container">
+      <div class="hero-copy">
+        <div class="eyebrow"><span class="pulse"></span> Custom build lab online</div>
+        <h1>UNLOCK THE <span class="gradient-text">IMPOSSIBLE.</span></h1>
+        <p>One-of-one Xbox 360 JTAG &amp; RGH builds with vivid RGB styling, upgraded storage, precision cooling, and your personality baked into every detail.</p>
+        <div class="hero-actions">
+          <a class="button pink" href="#builds">Explore builds <span>↗</span></a>
+          <a class="button secondary" href="#process">See how it works</a>
+        </div>
+        <div class="trust-row">
+          <span>Fully tested</span>
+          <span>90-day support</span>
+          <span>Tracked delivery</span>
+        </div>
+      </div>
+
+      <div class="console-stage" aria-label="Stylized custom Xbox 360 console">
+        <div class="orb"></div>
+        <div class="chip one"><b>RGB MOD</b>16.8M COLORS</div>
+        <div class="chip two"><b>COOL &amp; QUIET</b>FAN TUNED</div>
+        <div class="chip three"><b>READY TO GO</b>FULLY TESTED</div>
+        <div class="console">
+          <div class="rgb-strip"></div>
+          <div class="disc"></div>
+          <div class="led-ring"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="marquee" aria-hidden="true">
+      <div class="marquee-track">
+        <span>CUSTOM SHELLS</span><span>RGB LIGHTING</span><span>RGH &amp; JTAG</span><span>STORAGE UPGRADES</span><span>FAN MODS</span><span>CONSOLE REPAIRS</span>
+        <span>CUSTOM SHELLS</span><span>RGB LIGHTING</span><span>RGH &amp; JTAG</span><span>STORAGE UPGRADES</span><span>FAN MODS</span><span>CONSOLE REPAIRS</span>
+      </div>
+    </div>
+
+    <section id="builds">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <div class="eyebrow">Choose your power level</div>
+            <h2>BUILDS THAT HIT DIFFERENT.</h2>
+          </div>
+          <p>Every console is hand-finished, stress-tested, and configured for a smooth experience from the first boot.</p>
+        </div>
+
+        <div class="build-grid">
+          <article class="build-card reveal">
+            <div class="icon">⚡</div>
+            <h3>Core Mod</h3>
+            <div class="price">$149 <small>from</small></div>
+            <ul class="features">
+              <li>RGH installation service</li>
+              <li>Thermal service &amp; clean</li>
+              <li>Dashboard configuration</li>
+              <li>48-hour stress test</li>
+            </ul>
+            <a class="button secondary" href="#customizer">Configure core</a>
+          </article>
+
+          <article class="build-card featured reveal">
+            <div class="popular">MOST WANTED</div>
+            <div class="icon">✦</div>
+            <h3>Neon Beast</h3>
+            <div class="price">$329 <small>from</small></div>
+            <ul class="features">
+              <li>Console + RGH installation</li>
+              <li>500GB upgraded storage</li>
+              <li>Multi-zone RGB lighting</li>
+              <li>Quiet fan &amp; thermal tune</li>
+            </ul>
+            <a class="button pink" href="#customizer">Build the beast</a>
+          </article>
+
+          <article class="build-card reveal">
+            <div class="icon">👑</div>
+            <h3>One of One</h3>
+            <div class="price">$499 <small>from</small></div>
+            <ul class="features">
+              <li>Fully bespoke visual theme</li>
+              <li>Custom shell finishing</li>
+              <li>1TB upgraded storage</li>
+              <li>Priority lifetime support</li>
+            </ul>
+            <a class="button secondary" href="#contact">Request a concept</a>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="customizer">
+      <div class="container">
+        <div class="customizer reveal">
+          <div>
+            <div class="eyebrow">Live build estimator</div>
+            <h2>MAKE IT YOURS.</h2>
+            <p>Mix your console, storage, lighting, and finish. Get an instant estimate, then send us the setup to reserve a build slot.</p>
+          </div>
+
+          <div class="builder-form" id="builder">
+            <div class="field">
+              <label for="consoleType">Console</label>
+              <select id="consoleType" data-price>
+                <option value="199">Xbox 360 Slim — $199</option>
+                <option value="229">Xbox 360 E — $229</option>
+                <option value="259">Limited Edition Base — $259</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="storage">Storage</label>
+              <select id="storage" data-price>
+                <option value="0">250GB — Included</option>
+                <option value="45">500GB — +$45</option>
+                <option value="90">1TB — +$90</option>
+                <option value="160">2TB — +$160</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="lighting">Lighting</label>
+              <select id="lighting" data-price>
+                <option value="0">Classic Green — Included</option>
+                <option value="39">RGB Ring — +$39</option>
+                <option value="79">Multi-zone RGB — +$79</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="finish">Shell finish</label>
+              <select id="finish" data-price>
+                <option value="0">Factory Black — Included</option>
+                <option value="55">Crystal Clear — +$55</option>
+                <option value="85">Custom Color — +$85</option>
+                <option value="145">Hand-painted Theme — +$145</option>
+              </select>
+            </div>
+            <div class="total">
+              <div><span>Estimated build total</span><strong id="totalPrice">$199</strong></div>
+              <button class="button" id="reserveBtn" type="button">Reserve this build →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="process">
+      <div class="container">
+        <div class="section-head reveal">
+          <div>
+            <div class="eyebrow">No mystery, no stress</div>
+            <h2>FROM IDEA TO POWER-ON.</h2>
+          </div>
+          <p>A straightforward build process with updates at every important stage.</p>
+        </div>
+        <div class="process-grid">
+          <article class="step reveal"><div class="step-num">01</div><h3>Choose</h3><p>Pick a package or create your ideal setup with the customizer.</p></article>
+          <article class="step reveal"><div class="step-num">02</div><h3>Confirm</h3><p>We verify compatibility, details, pricing, and your visual direction.</p></article>
+          <article class="step reveal"><div class="step-num">03</div><h3>Build</h3><p>Your console is assembled, tuned, and thoroughly stress-tested.</p></article>
+          <article class="step reveal"><div class="step-num">04</div><h3>Unleash</h3><p>Tracked delivery lands at your door, ready for your first power-on.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <div class="container" id="contact">
+      <div class="cta reveal">
+        <h2>READY TO GO LOUD?</h2>
+        <p>Tell us your colors, your vibe, and your dream spec. We’ll turn it into a console nobody else owns.</p>
+        <a class="button" href="mailto:builds@jtagfury.example?subject=Custom%20Xbox%20Build">Start a custom request →</a>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container footer-row">
+      <a class="brand" href="#top"><span class="brand-mark">X</span><span>JTAG<span>FURY</span></span></a>
+      <div class="footer-links">
+        <a href="#builds">Builds</a>
+        <a href="#process">Process</a>
+        <a href="mailto:support@jtagfury.example">Support</a>
+      </div>
+      <span>© <span id="year"></span> JTAG Fury</span>
+    </div>
+    <div class="container disclaimer">Independent customization service. Not affiliated with, endorsed by, or sponsored by Microsoft or Xbox. Xbox and related marks belong to their respective owners. Customers are responsible for using modified hardware in accordance with applicable laws and service terms.</div>
+  </footer>
+
+  <script>
+    const menuBtn = document.getElementById('menuBtn');
+    const navLinks = document.getElementById('navLinks');
+
+    menuBtn.addEventListener('click', () => {
+      const open = navLinks.classList.toggle('open');
+      menuBtn.setAttribute('aria-expanded', open);
+      menuBtn.textContent = open ? '✕' : '☰';
+    });
+
+    navLinks.querySelectorAll('a').forEach(link => link.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+      menuBtn.setAttribute('aria-expanded', 'false');
+      menuBtn.textContent = '☰';
+    }));
+
+    const priceFields = document.querySelectorAll('[data-price]');
+    const totalPrice = document.getElementById('totalPrice');
+
+    function updatePrice() {
+      const total = [...priceFields].reduce((sum, field) => sum + Number(field.value), 0);
+      totalPrice.textContent = '$' + total.toLocaleString();
+    }
+
+    priceFields.forEach(field => field.addEventListener('change', updatePrice));
+    updatePrice();
+
+    document.getElementById('reserveBtn').addEventListener('click', () => {
+      const details = [...priceFields].map(field => field.options[field.selectedIndex].text).join('\n');
+      const subject = encodeURIComponent('Custom Xbox Build Request');
+      const body = encodeURIComponent(`Hey JTAG Fury,\n\nI'd like to reserve this build:\n\n${details}\n\nEstimated total: ${totalPrice.textContent}\n\nPlease send me the next steps.`);
+      window.location.href = `mailto:builds@jtagfury.example?subject=${subject}&body=${body}`;
+    });
+
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
