@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  html:
+    name: Validate HTML
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tidy check (errors fail, warnings tolerated)
+        run: |
+          set -e
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq tidy
+          status=0
+          for f in *.html; do
+            echo "::group::$f"
+            tidy -errors -q "$f" > tidy_out.txt 2>&1 || code=$?
+            code=$?
+            cat tidy_out.txt
+            if [ "${code:-0}" -ge 2 ]; then
+              echo "::error file=$f::tidy reported HTML errors"
+              status=1
+            fi
+            rm -f tidy_out.txt
+            echo "::endgroup::"
+          done
+          exit $status
+
+      - name: Check internal links and anchors
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # offline = local files only; external link rot must not fail CI
+          args: --offline --no-progress '*.html'
+          fail: true
