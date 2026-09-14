@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="JTAG Fury">
+  <defs>
+    <linearGradient id="jf" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#a9ff38"/>
+      <stop offset=".48" stop-color="#20f4e6"/>
+      <stop offset="1" stop-color="#8a3ffc"/>
+    </linearGradient>
+  </defs>
+  <g transform="rotate(-5 32 32)">
+    <rect x="6" y="6" width="52" height="52" rx="14" fill="url(#jf)"/>
+    <path fill="#120722" d="M19 18h8.4L32 29.6 36.6 18H45L36.2 32 45 46h-8.4L32 34.4 27.4 46H19l8.8-14L19 18z"/>
+  </g>
+</svg>
